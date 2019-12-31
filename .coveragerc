@@ -1,0 +1,5 @@
+[run]
+include = survey_app_repo/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin

@@ -1,1 +1,11 @@
-This is survey page
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 id="survey-title" class="display-5 text-capitalize">{{survey.title}}</h1>
+    <p id="survey-summary" class="lead">{{survey.summary}}</p>
+    <hr class="my-4">
+    <p>It will take few minutes, share your opinion with us</p>
+    <a id="btn_takesurvey" class="btn btn-primary btn-lg" href="{% url 'survey:take_survey' survey.pk %}" role="button">Take Survey</a>
+</div>
+{% endblock content%}

@@ -10,6 +10,11 @@ def surveys(request):
 
 
 def survey(request, pk):
-    '''View to start taking survey'''
+    '''Detail view for survey'''
     _survey = get_object_or_404(Survey, pk=pk)
     return render(request, 'survey/survey.html', context=dict(survey=_survey))
+
+def take_survey(request, pk):
+    '''View where user responds to survey'''
+    _survey = get_object_or_404(Survey, pk=pk)
+    return render(request, 'survey/take_survey.html', context=dict(survey=_survey))

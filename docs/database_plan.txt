@@ -1,0 +1,26 @@
+# Survey
+    title char(255) Not Null
+    summary char(400) Null
+    created_date (datetime) Not Null
+    published_date (datetime) Null
+    published bool Not Null
+
+# Question
+    question char(255) Not Null
+    description char(255) Null
+    type choice[] Not Null
+    survey forigenkey(Survey)
+
+# QuestionOptions
+    option_text char(255) Not Null
+    question forigenkey(Question)
+
+# ResponseText
+    response char(255) Empty
+    question forigenkey(Question)
+    user forigenkey(User) Null
+
+# ResponseOption
+    option forigenkey(Option) Not Null
+    question forigenkey(Question) Not Null
+    user forigenkey(User) Null

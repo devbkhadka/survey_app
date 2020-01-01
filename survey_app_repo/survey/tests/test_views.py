@@ -8,6 +8,13 @@ from .. import views
 from ..models import Survey
 from .factory import create_surveys
 
+RAW_SURVEY = \
+{
+    'title': 'Your favourite candidate',
+    'summary': 'Answer questions like who is your favourite candidate and why',
+    'published_date': '2019-4-20 00:00+0545',
+}
+
 class TestSurveysView(TestCase):
     '''Test case for Surveys view'''
 
@@ -42,12 +49,36 @@ class TestSurveyView(TestCase):
 
     def test_renders_survey_template(self):
         '''Test survey view uses survey template'''
-        surveys = create_surveys(["survey 1"])
+        surveys = create_surveys([RAW_SURVEY])
         response = self.client.get(surveys[0].get_absolute_url())
         self.assertTemplateUsed(response, 'survey/survey.html')
 
     def test_sends_correct_survey_in_context(self):
         '''test correct survey sent in context'''
-        survey = create_surveys(["survey 1"])[0]
+        survey = create_surveys([RAW_SURVEY])[0]
         response = self.client.get(survey.get_absolute_url())
         self.assertEqual(response.context['survey'], survey)
+
+class TestTakeSurveyView(TestCase):
+    '''Test case for TakeSurvey view'''
+
+    def setUp(self):
+        self.survey = create_surveys([RAW_SURVEY])[0]
+        self.takesurvey_url = reverse('survey:take_survey', args=[self.survey.pk])
+        super().setUp()
+
+    def test_correct_view_called(self):
+        
+        resolved_function = resolve(self.takesurvey_url).func
+        expected_function = views.take_survey
+
+        self.assertEqual(resolved_function, expected_function)
+
+    def test_renders_correct_template(self):
+        response = self.client.get(self.takesurvey_url)
+        self.assertTemplateUsed(response, 'survey/take_survey.html')
+
+    def test_sends_correct_survey_in_context(self):
+        '''test correct survey sent in context'''
+        response = self.client.get(self.takesurvey_url)
+        self.assertEqual(response.context['survey'], self.survey)

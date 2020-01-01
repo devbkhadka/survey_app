@@ -3,7 +3,7 @@
 {% block content %}
     
     <div class="card surveys">
-        <div class="card-header">Surveys</div>
+        <h1 class="card-header display-5">Surveys</h1>
         <ul class="list-group list-group-flush">
         {% for survey in surveys %}
         <a id="survey_{{survey.pk}}" class="list-group-item list-group-item-action" href="{{survey.get_absolute_url}}">

@@ -6,5 +6,5 @@ from .views import survey, take_survey
 app_name = "survey"
 urlpatterns = [
     path("<int:pk>", survey, name="detail"),
-    path("takesurvey/<int:pk>", take_survey, name="take_survey"),
+    path("takesurvey/<int:pk>/<int:index>", take_survey, name="take_survey"),
 ]

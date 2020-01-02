@@ -8,6 +8,7 @@ from django.utils import timezone
 
 
 from .. import models
+from .factory import create_survey_with_questions
 
 RAW_SURVEY = \
 {
@@ -37,4 +38,13 @@ class TestSurveyModel(TestCase):
         '''Test absolute url implemented and give correct url'''
         expected_url = reverse('survey:detail', args=[self.survey.pk])
         self.assertEqual(self.survey.get_absolute_url(), expected_url)
-    
+
+class TestQuestionModel(TestCase):
+    '''Test case for question model'''
+
+    def setUp(self):
+        self.survey = create_survey_with_questions()
+
+    def test_can_create_question_for_survey(self):
+        survey = models.Survey.objects.get(pk=self.survey.pk) # raises if survey not found
+        self.assertEqual(survey.questions.count(), 2)

@@ -13,27 +13,6 @@ from selenium.webdriver.common.keys import Keys
 
 from . import factory
 
-
-
-RAW_SURVEYS = [
-            {
-                'title': 'Your favourite candidate',
-                'summary': 'Answer questions like who is your favourite candidate and why',
-                'published_date': '2019-4-20 00:00+0545',
-            },
-            {
-                'title': 'Your view on inflation',
-                'summary': 'What do you feel about value of money, do you have some examples?',
-                'published_date': '2019-4-20 00:00+0545',
-            },
-            {
-                'title': 'Top movie of 2019',
-                'summary': 'Which movie do you like most in the year 2019',
-                'published_date': '2019-4-20 00:00+0545',
-            }
-
-        ]
-
 class FunctionalTestCase(StaticLiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Chrome()
@@ -46,7 +25,7 @@ class FunctionalTestCase(StaticLiveServerTestCase):
 class SurveysFunctionalTest(FunctionalTestCase):
     ''''Collections of all functional tests'''
     def setUp(self):
-        self.surveys = factory.create_surveys(RAW_SURVEYS)
+        self.surveys = factory.create_surveys()
         super().setUp()
 
     def test_can_see_list_of_surveys(self):
@@ -56,9 +35,9 @@ class SurveysFunctionalTest(FunctionalTestCase):
         title_elements = self.browser.find_elements_by_css_selector('.surveys .card-title')
         summary_elements = self.browser.find_elements_by_css_selector('.surveys .card-text')
 
-        self.assertEqual([survey['title'].lower() for survey in RAW_SURVEYS],
+        self.assertEqual([survey.title.lower() for survey in self.surveys],
                          [elem.text.lower() for elem in title_elements])
-        self.assertEqual([survey['summary'].lower() for survey in RAW_SURVEYS],
+        self.assertEqual([survey.summary.lower() for survey in self.surveys],
                          [elem.text.lower() for elem in summary_elements])
 
 
@@ -75,7 +54,7 @@ class SurveyFunctionalTest(FunctionalTestCase):
     '''Functional tests for survey detail view'''
 
     def setUp(self):
-        self.survey = factory.create_surveys([RAW_SURVEYS[0]])[0]
+        self.survey = factory.create_surveys()[0]
         super().setUp()
 
     def test_view_shows_correct_survey(self):
@@ -94,3 +73,21 @@ class SurveyFunctionalTest(FunctionalTestCase):
 
         expected_url = reverse('survey:take_survey', args=[self.survey.pk])
         self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
+
+class TakeSurveyFunctionalTest(FunctionalTestCase):
+    '''Test case for TakeSurvey view'''
+    
+    def setUp(self):
+        self.survey = factory.create_survey_with_questions()
+        super().setUp()
+
+    def test_invoking_url_shows_ui_of_1st_question(self):
+        '''Test hitting url of TakeSurvey page will show 1st question of specified survey'''
+        url = reverse('survey:take_survey', args=[self.survey.pk, 1])
+        self.browser.get(self.live_server_url+url)
+
+        self.assertEqual(self.browser.find_element_by_id('survey-title').text.lower(),
+                         self.survey.title.lower())
+
+        self.assertEqual(self.browser.find_element_by_id('question-title').text.lower(),
+                         self.survey.questions.first().question.lower())

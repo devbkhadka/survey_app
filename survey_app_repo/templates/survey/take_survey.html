@@ -1,1 +1,17 @@
-This is take survey page
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 id="survey-title" class="display-5 text-capitalize">{{survey.title}}</h1>
+    <hr class="my-4">
+
+    <div class="card-body">
+        <h5 id="question-title" class="card-title">{{question.question}}</h5>
+        {% block question%}
+        Put your question ui here
+        {% endblock question%}
+    </div>
+    
+    <a href="#" class="btn btn-primary">Go somewhere</a>
+</div>
+{% endblock content%}

@@ -1,7 +1,7 @@
 '''module for views'''
 from django.shortcuts import render, get_object_or_404
 
-from .models import Survey
+from .models import Survey, Question
 
 def surveys(request):
     '''View to show list of all surveys'''
@@ -14,7 +14,9 @@ def survey(request, pk):
     _survey = get_object_or_404(Survey, pk=pk)
     return render(request, 'survey/survey.html', context=dict(survey=_survey))
 
-def take_survey(request, pk):
+def take_survey(request, pk, index):
     '''View where user responds to survey'''
     _survey = get_object_or_404(Survey, pk=pk)
-    return render(request, 'survey/take_survey.html', context=dict(survey=_survey))
+    question = Question.objects.filter(survey=_survey)[index-1]
+    return render(request, f'survey/questions/{question.question_type}.html',
+                   context=dict(survey=_survey, question=question))

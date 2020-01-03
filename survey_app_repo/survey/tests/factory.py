@@ -27,9 +27,14 @@ RAW_QUESTIONS = [
         'question_type': QuestionTypes.DESC
     },
     {
-        'question': 'Read Description Below',
-        'description': 'This is description for qoutation',
+        'question': 'Please enter your text response',
+        'description': 'You can enter free text below',
         'question_type': QuestionTypes.TEXT
+    },
+    {
+        'question': 'Check out',
+        'description': 'This is description for qoutation',
+        'question_type': QuestionTypes.DESC
     }
 ]
 

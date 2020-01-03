@@ -81,10 +81,13 @@ class TestTakeSurveyView(TestCase):
         response = self.client.get(takesurvey_url)
         self.assertTemplateUsed(response, expected_template)
 
-    def test_sends_correct_survey_in_context(self):
+    def test_sends_correct_values_in_context(self):
         '''test correct survey sent in context'''
         takesurvey_url = reverse('survey:take_survey', args=[self.survey.pk, 2])
         response = self.client.get(takesurvey_url)
         self.assertEqual(response.context['survey'], self.survey)
         question = Question.objects.filter(survey=self.survey)[1]
         self.assertEqual(response.context['question'], question)
+        self.assertEqual(response.context['cur_index'], 2)
+        self.assertEqual(response.context['questions_count'], self.survey.questions.count())
+

@@ -12,6 +12,9 @@
         {% endblock question%}
     </div>
     
-    <a href="#" class="btn btn-primary">Go somewhere</a>
+    <a id= 'btn-previous' href="{% url 'survey:take_survey' survey.pk cur_index|add:'-1' %}" 
+        class="btn btn-primary {% if cur_index == 1 %}disabled{% endif %}">Previous</a>
+    <a id= 'btn-next' href="{% url 'survey:take_survey' survey.pk cur_index|add:1 %}"
+        class="btn btn-primary {% if cur_index == questions_count %}disabled{% endif %}">Next</a>
 </div>
 {% endblock content%}

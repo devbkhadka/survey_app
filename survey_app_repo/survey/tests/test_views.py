@@ -5,8 +5,9 @@ from django.urls import reverse, resolve
 
 
 from .. import views
-from ..models import Survey, Question
-from .factory import create_surveys, create_survey_with_questions
+from ..models import Survey, Question, QuestionTypes
+from ..forms import TextQuestionForm
+from . import factory
 
 class TestSurveysView(TestCase):
     '''Test case for Surveys view'''
@@ -42,13 +43,13 @@ class TestSurveyView(TestCase):
 
     def test_renders_survey_template(self):
         '''Test survey view uses survey template'''
-        surveys = create_surveys()
+        surveys = factory.create_surveys()
         response = self.client.get(surveys[0].get_absolute_url())
         self.assertTemplateUsed(response, 'survey/survey.html')
 
     def test_sends_correct_survey_in_context(self):
         '''test correct survey sent in context'''
-        survey = create_surveys()[0]
+        survey = factory.create_surveys()[0]
         response = self.client.get(survey.get_absolute_url())
         self.assertEqual(response.context['survey'], survey)
 
@@ -56,7 +57,7 @@ class TestTakeSurveyView(TestCase):
     '''Test case for TakeSurvey view'''
 
     def setUp(self):
-        self.survey = create_survey_with_questions()
+        self.survey = factory.create_survey_with_questions()
         super().setUp()
 
     def test_correct_view_called(self):
@@ -91,3 +92,18 @@ class TestTakeSurveyView(TestCase):
         self.assertEqual(response.context['cur_index'], 2)
         self.assertEqual(response.context['questions_count'], self.survey.questions.count())
 
+class TestQuestionTypeSubView(TestCase):
+    question_type = None
+    def setUp(self):
+        self.survey = factory.create_survey_with_questions()
+        index, self.question = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
+        self.url = reverse('survey:take_survey', args=[self.survey.pk, index])
+        super().setUp()
+
+
+class TestTextQuestion(TestQuestionTypeSubView):
+    question_type = QuestionTypes.TEXT
+
+    def test_sends_correct_form_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIsInstance(response.context['form'], TextQuestionForm)

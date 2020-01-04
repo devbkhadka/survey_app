@@ -28,5 +28,8 @@ class QuestionTypes(Enum):
 class Question(models.Model):
     question = models.CharField(max_length=255)
     description = models.CharField(max_length=400)
-    question_type = models.CharField(max_length=255, choices=[(tag, tag.value) for tag in QuestionTypes])
+    question_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in QuestionTypes])
     survey = models.ForeignKey(Survey, related_name='questions', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.question

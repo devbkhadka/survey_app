@@ -83,12 +83,10 @@ class SurveyFunctionalTest(FunctionalTestCase):
         btn = self.browser.find_element_by_css_selector('#btn_takesurvey.disabled')
         with self.assertRaises(ElementClickInterceptedException):
             btn.click()
-        
-       
 
 class TakeSurveyFunctionalTest(FunctionalTestCase):
     '''Test case for TakeSurvey view'''
-    
+
     def setUp(self):
         self.survey = factory.create_survey_with_questions()
         super().setUp()
@@ -147,17 +145,29 @@ class TakeSurveyFunctionalTest(FunctionalTestCase):
         expected_url = reverse('survey:take_survey', args=[self.survey.pk, 1])
         self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
 
-        
 
-    def get_question_and_index_of_type(self, qtype):
-        questions = Question.objects.filter(survey=self.survey)
-        for i, question in enumerate(questions):
-            if question.question_type == str(qtype):
-                return i + 1, question
-        return None
+class QuestionTypeTestCase(FunctionalTestCase):
+    question_type = None
+    def setUp(self):
+        self.survey = factory.create_survey_with_questions()
+        print(self.question_type)
+        index, self.question = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
+        self.url = reverse('survey:take_survey', args=[self.survey.pk, index])
+        super().setUp()
 
+
+class TestDescQuestionType(QuestionTypeTestCase):
+    '''Test case for Text question type'''
+    question_type = QuestionTypes.DESC
     def test_ui_for_description_type_question(self):
-        index, question = self.get_question_and_index_of_type(QuestionTypes.DESC)
-        url = reverse('survey:take_survey', args=[self.survey.pk, index])
-        self.browser.get(self.live_server_url+url)
-        self.assertEqual(self.browser.find_element_by_id('description').text, question.description)
+        self.browser.get(self.live_server_url+self.url)
+        self.assertEqual(self.browser.find_element_by_id('description').text, self.question.description)
+
+class TestTextQuestionType(QuestionTypeTestCase):
+    '''Test case for Text question type'''
+    question_type = QuestionTypes.TEXT
+    def test_ui_of_text_question_type(self):
+        '''Test ui components of text question type'''
+        self.browser.get(self.live_server_url + self.url)
+        self.browser.find_element_by_css_selector("input#text-answer")
+        

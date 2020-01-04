@@ -47,4 +47,4 @@ class TestQuestionModel(TestCase):
 
     def test_can_create_question_for_survey(self):
         survey = models.Survey.objects.get(pk=self.survey.pk) # raises if survey not found
-        self.assertEqual(survey.questions.count(), 2)
+        self.assertEqual(survey.questions.count(), 3)

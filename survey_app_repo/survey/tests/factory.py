@@ -2,39 +2,39 @@
 from ..models import Survey, Question, QuestionTypes
 
 RAW_SURVEYS = [
-            {
-                'title': 'Your favourite candidate',
-                'summary': 'Answer questions like who is your favourite candidate and why',
-                'published_date': '2019-4-20 00:00+0545',
-            },
-            {
-                'title': 'Your view on inflation',
-                'summary': 'What do you feel about value of money, do you have some examples?',
-                'published_date': '2019-4-20 00:00+0545',
-            },
-            {
-                'title': 'Top movie of 2019',
-                'summary': 'Which movie do you like most in the year 2019',
-                'published_date': '2019-4-20 00:00+0545',
-            }
+    {
+        'title': 'Your favourite candidate',
+        'summary': 'Answer questions like who is your favourite candidate and why',
+        'published_date': '2019-4-20 00:00+0545',
+    },
+    {
+        'title': 'Your view on inflation',
+        'summary': 'What do you feel about value of money, do you have some examples?',
+        'published_date': '2019-4-20 00:00+0545',
+    },
+    {
+        'title': 'Top movie of 2019',
+        'summary': 'Which movie do you like most in the year 2019',
+        'published_date': '2019-4-20 00:00+0545',
+    }
 
-        ]
+]
 
 RAW_QUESTIONS = [
     {
         'question': 'Read Description Below',
         'description': 'This is description for qoutation',
-        'question_type': QuestionTypes.DESC
+        'question_type': QuestionTypes.DESC.name
     },
     {
         'question': 'Please enter your text response',
         'description': 'You can enter free text below',
-        'question_type': QuestionTypes.TEXT
+        'question_type': QuestionTypes.TEXT.name
     },
     {
         'question': 'Check out',
         'description': 'This is description for qoutation',
-        'question_type': QuestionTypes.DESC
+        'question_type': QuestionTypes.DESC.name
     }
 ]
 
@@ -53,3 +53,10 @@ def create_survey_with_questions():
         question = Question.objects.create(survey=survey, **raw)
         survey.questions.add(question)
     return survey
+
+def get_question_and_index_of_type(survey, qtype):
+    questions = Question.objects.filter(survey=survey)
+    for i, question in enumerate(questions):
+        if question.question_type == str(qtype):
+            return i + 1, question
+    return None

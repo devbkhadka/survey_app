@@ -15,12 +15,18 @@
     option_text char(255) Not Null
     question forigenkey(Question)
 
+# SurveyResponse
+    survey forigenkey(Survey)
+    user forigenkey(User)
+    started_at datetime (Not Null, default=now)
+    completed_at datetime (Null)
+
 # ResponseText
     response char(255) Empty
     question forigenkey(Question)
-    user forigenkey(User) Null
+    survey_response forigenkey (SurveyResponse)
 
 # ResponseOption
     option forigenkey(Option) Not Null
     question forigenkey(Question) Not Null
-    user forigenkey(User) Null
+    survey_response forigenkey (SurveyResponse)

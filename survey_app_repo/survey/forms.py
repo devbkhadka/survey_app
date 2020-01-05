@@ -1,7 +1,7 @@
 '''Module for forms of survey app'''
 
 from django import forms
-from .models import QuestionTypes
+from .models import QuestionTypes, ResponseText
 
 class FormRegistar:
     _instance = None
@@ -27,9 +27,14 @@ class FormRegistar:
         return None
 
 
-class TextQuestionForm(forms.Form):
-    pass
-        
+class TextQuestionForm(forms.ModelForm):
+
+    class Meta:
+        model = ResponseText
+        fields = ['response']
+        labels = {
+            'response': ''
+        }
 
 registar = FormRegistar.get_instance()
 registar.register_form(QuestionTypes.TEXT.name, TextQuestionForm)

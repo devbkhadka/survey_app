@@ -169,5 +169,5 @@ class TestTextQuestionType(QuestionTypeTestCase):
     def test_ui_of_text_question_type(self):
         '''Test ui components of text question type'''
         self.browser.get(self.live_server_url + self.url)
-        self.browser.find_element_by_css_selector("input#text-answer")
+        self.browser.find_element_by_css_selector("input#id_response")
         

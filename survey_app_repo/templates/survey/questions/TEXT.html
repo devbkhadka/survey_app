@@ -1,9 +1,13 @@
 {% extends 'survey/take_survey.html' %}
 
+{% load bootstrap4 %}
+
 {% block question %}
-<form>
-    <div class="form-group">
-        <input type="text" class="form-control" id="text-answer" >
-    </div>
+
+{# Display a form #}
+
+<form action="/url/to/submit/" method="post" class="form">
+    {% csrf_token %}
+    {% bootstrap_form form %}
 </form>
 {% endblock question%}

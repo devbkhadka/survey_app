@@ -4,6 +4,8 @@ from enum import Enum
 from django.db import models
 from django.urls import reverse
 
+from django.conf import settings
+
 # Create your models here.
 class Survey(models.Model):
     '''Model representing a survey'''
@@ -33,3 +35,15 @@ class Question(models.Model):
 
     def __str__(self):
         return self.question
+
+class SurveyResponse(models.Model):
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+
+class ResponseText(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    survey_response = models.ForeignKey(SurveyResponse, on_delete=models.CASCADE)
+    response = models.CharField(max_length=400, null=True, blank=True)
+
+    class Meta:
+        unique_together = ['question', 'survey_response']

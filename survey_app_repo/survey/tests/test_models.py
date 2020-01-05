@@ -4,6 +4,9 @@ from datetime import timedelta, datetime
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
+from django.db import transaction
 
 
 
@@ -48,3 +51,43 @@ class TestQuestionModel(TestCase):
     def test_can_create_question_for_survey(self):
         survey = models.Survey.objects.get(pk=self.survey.pk) # raises if survey not found
         self.assertEqual(survey.questions.count(), 3)
+
+class TestSurveyResponseModel(TestCase):
+    '''Test case for SurveyResponse model'''
+
+    def setUp(self):
+        self.survey = create_survey_with_questions()
+
+    def test_can_create_survey_response(self):
+        User = get_user_model()
+        user = User.objects.create(username='test')
+        models.SurveyResponse.objects.create(survey=self.survey, user=user)
+        self.assertEqual(models.SurveyResponse.objects.count(), 1)
+        # create with user null
+        models.SurveyResponse.objects.create(survey=self.survey)
+        self.assertEqual(models.SurveyResponse.objects.count(), 2)
+
+class TestResponseText(TestCase):
+    '''Test model ResponseText'''
+
+    def setUp(self):
+        self.survey = create_survey_with_questions()
+        self.question = self.survey.questions.first()
+
+    def test_can_create_response_text(self):
+        survey_response = models.SurveyResponse.objects.create(survey=self.survey)
+        models.ResponseText.objects.create(survey_response=survey_response, question=self.question, 
+                                            response='This is my response')
+
+
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                models.ResponseText.objects.create(survey_response=survey_response, question=self.question,
+                                                    response='This is my response2')
+
+        survey_response2 = models.SurveyResponse.objects.create(survey=self.survey)
+
+        models.ResponseText.objects.create(survey_response=survey_response2, question=self.question,
+                                            response='This is my response2')
+
+        self.assertEqual(models.SurveyResponse.objects.count(), 2)

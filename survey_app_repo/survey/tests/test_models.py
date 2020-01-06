@@ -67,6 +67,7 @@ class TestSurveyResponseModel(TestCase):
         models.SurveyResponse.objects.create(survey=self.survey)
         self.assertEqual(models.SurveyResponse.objects.count(), 2)
 
+
 class TestResponseText(TestCase):
     '''Test model ResponseText'''
 
@@ -88,6 +89,6 @@ class TestResponseText(TestCase):
         survey_response2 = models.SurveyResponse.objects.create(survey=self.survey)
 
         models.ResponseText.objects.create(survey_response=survey_response2, question=self.question,
-                                            response='This is my response2')
+                                           response='This is my response2')
 
         self.assertEqual(models.SurveyResponse.objects.count(), 2)

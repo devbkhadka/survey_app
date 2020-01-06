@@ -40,6 +40,7 @@ class SurveyResponse(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
+
 class ResponseText(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     survey_response = models.ForeignKey(SurveyResponse, on_delete=models.CASCADE)
@@ -47,3 +48,5 @@ class ResponseText(models.Model):
 
     class Meta:
         unique_together = ['question', 'survey_response']
+
+    

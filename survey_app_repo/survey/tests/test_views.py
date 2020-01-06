@@ -1,11 +1,12 @@
 '''Test cases for views'''
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 from django.urls import reverse, resolve
-
+from django.contrib.auth import get_user_model
 
 from .. import views
-from ..models import Survey, Question, QuestionTypes
+from ..models import Survey, Question, QuestionTypes, SurveyResponse
 from ..forms import TextQuestionForm
 from . import factory
 
@@ -72,7 +73,6 @@ class TestTakeSurveyView(TestCase):
         takesurvey_url = reverse('survey:take_survey', args=[self.survey.pk, 1])
         question = Question.objects.filter(survey=self.survey)[0]
         expected_template = f'survey/questions/{question.question_type}.html'
-        print(expected_template)
         response = self.client.get(takesurvey_url)
         self.assertTemplateUsed(response, expected_template)
 
@@ -92,6 +92,15 @@ class TestTakeSurveyView(TestCase):
         self.assertEqual(response.context['cur_index'], 2)
         self.assertEqual(response.context['questions_count'], self.survey.questions.count())
 
+    @patch.object(views, 'get_or_create_survey_response')
+    def test_survey_response_id_cookie_set(self, mock_get_or_create_survey_response):
+        '''Test survey_response_id cookie is set when take survey url invoked'''
+        mock_get_or_create_survey_response.return_value = Mock(pk=15)
+        takesurvey_url = reverse('survey:take_survey', args=[self.survey.pk, 1])
+        response = self.client.get(takesurvey_url)
+        mock_get_or_create_survey_response.assert_called_once_with(response.wsgi_request, self.survey)
+        self.assertEqual(response.cookies.get(f'survey_response_id_{self.survey.pk}').value, '15')
+
 class TestQuestionTypeSubView(TestCase):
     question_type = None
     def setUp(self):
@@ -107,3 +116,26 @@ class TestTextQuestion(TestQuestionTypeSubView):
     def test_sends_correct_form_in_context(self):
         response = self.client.get(self.url)
         self.assertIsInstance(response.context['form'], TextQuestionForm)
+
+
+class TestGetOrCreateSurveyResponse(TestCase):
+    '''Test get_or_create_sruvey_response'''
+
+    def test_get_or_create_survey_response(self):
+        User = get_user_model()
+        user = User.objects.create(username='dev')
+        survey = factory.create_survey_with_questions()
+
+        request = Mock()
+        request.user = user
+        request.COOKIES = {}
+
+        views.get_or_create_survey_response(request, survey)
+
+        survey_response = SurveyResponse.objects.first()
+        self.assertEqual(survey_response.survey, survey)
+        self.assertEqual(survey_response.user, user)
+
+        request.COOKIES = {f'survey_response_id_{survey.pk}': str(survey_response.pk)}
+        
+        self.assertEqual(views.get_or_create_survey_response(request, survey), survey_response)

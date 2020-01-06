@@ -145,6 +145,12 @@ class TakeSurveyFunctionalTest(FunctionalTestCase):
         expected_url = reverse('survey:take_survey', args=[self.survey.pk, 1])
         self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
 
+    def test_survey_response_id_cookie_set(self):
+        url = reverse('survey:take_survey', args=[self.survey.pk, 1])
+        self.browser.get(self.live_server_url+url)
+        value = self.browser.get_cookie(f'survey_response_id_{self.survey.pk}')['value']
+        self.assertTrue(value.isnumeric())
+
 
 class QuestionTypeTestCase(FunctionalTestCase):
     question_type = None
@@ -170,4 +176,3 @@ class TestTextQuestionType(QuestionTypeTestCase):
         '''Test ui components of text question type'''
         self.browser.get(self.live_server_url + self.url)
         self.browser.find_element_by_css_selector("input#id_response")
-        

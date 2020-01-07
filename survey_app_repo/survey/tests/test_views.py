@@ -6,7 +6,7 @@ from django.urls import reverse, resolve
 from django.contrib.auth import get_user_model
 
 from .. import views
-from ..models import Survey, Question, QuestionTypes, SurveyResponse
+from ..models import Survey, Question, QuestionTypes, SurveyResponse, ResponseText
 from ..forms import TextQuestionForm
 from . import factory
 
@@ -117,6 +117,16 @@ class TestTextQuestion(TestQuestionTypeSubView):
         response = self.client.get(self.url)
         self.assertIsInstance(response.context['form'], TextQuestionForm)
 
+    def test_loads_answer_in_form_if_exists(self):
+        survey_response = SurveyResponse.objects.create(survey=self.survey)
+        ResponseText.objects.create(survey_response=survey_response, question=self.question,
+                                    response="This response need to be preloaded")
+        
+        self.client.cookies[f'survey_response_id_{self.survey.pk}'] = survey_response.pk
+
+        response = self.client.get(self.url)
+        self.assertContains(response, "This response need to be preloaded")
+
 
 class TestGetOrCreateSurveyResponse(TestCase):
     '''Test get_or_create_sruvey_response'''
@@ -137,5 +147,5 @@ class TestGetOrCreateSurveyResponse(TestCase):
         self.assertEqual(survey_response.user, user)
 
         request.COOKIES = {f'survey_response_id_{survey.pk}': str(survey_response.pk)}
-        
+
         self.assertEqual(views.get_or_create_survey_response(request, survey), survey_response)

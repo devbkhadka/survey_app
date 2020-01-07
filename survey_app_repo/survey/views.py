@@ -20,11 +20,14 @@ def take_survey(request, pk, index):
     '''View where user responds to survey'''
     _survey = get_object_or_404(Survey, pk=pk)
     survey_response = get_or_create_survey_response(request, _survey)
-    
+
     questions = Question.objects.filter(survey=_survey)
     question = questions[index-1]
     count = questions.count()
     question_form = form_registar.get_form_for(question.question_type)
+    if question_form is not None:
+        question_form.load_instance(question=question, survey_response=survey_response)
+        
     response = render(request, f'survey/questions/{question.question_type}.html',
                       context=dict(survey=_survey, question=question, cur_index=index,
                                    questions_count=count, form=question_form))

@@ -1,6 +1,7 @@
 '''Module for forms of survey app'''
 
 from django import forms
+from django.forms.models import model_to_dict
 from .models import QuestionTypes, ResponseText
 
 class FormRegistar:
@@ -36,5 +37,15 @@ class TextQuestionForm(forms.ModelForm):
             'response': ''
         }
 
+    def load_instance(self, question, survey_response):
+        '''Load response from database if exists'''
+        instance = ResponseText.objects.filter(survey_response=survey_response, question=question).first()
+        if instance is not None:
+            print(model_to_dict(instance))
+            self.initial = model_to_dict(instance)
+            self.instance = instance
+
+
+# register forms to question types
 registar = FormRegistar.get_instance()
 registar.register_form(QuestionTypes.TEXT.name, TextQuestionForm)

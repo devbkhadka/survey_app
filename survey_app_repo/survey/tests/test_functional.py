@@ -156,7 +156,6 @@ class QuestionTypeTestCase(FunctionalTestCase):
     question_type = None
     def setUp(self):
         self.survey = factory.create_survey_with_questions()
-        print(self.question_type)
         index, self.question = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
         self.url = reverse('survey:take_survey', args=[self.survey.pk, index])
         super().setUp()
@@ -176,3 +175,18 @@ class TestTextQuestionType(QuestionTypeTestCase):
         '''Test ui components of text question type'''
         self.browser.get(self.live_server_url + self.url)
         self.browser.find_element_by_css_selector("input#id_response")
+
+    def test_question_form_loaded_if_exists(self):
+        '''Test question form pre-loads'''
+        self.browser.get(self.live_server_url + self.url)
+        inp = self.browser.find_element_by_css_selector("input#id_response")
+        inp.send_keys("This is my answer")
+
+        btn_next = self.browser.find_element_by_id('btn-next')
+        btn_next.click()
+        sleep(5)
+        btn_previous = self.browser.find_element_by_id('btn-previous')
+        btn_previous.click()
+        sleep(5)
+        inp = self.browser.find_element_by_css_selector("input#id_response")
+        self.assertEqual(inp.text, "This is my answer")

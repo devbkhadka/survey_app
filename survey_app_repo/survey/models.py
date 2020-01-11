@@ -36,9 +36,13 @@ class Question(models.Model):
     def __str__(self):
         return self.question
 
+    class Meta:
+        ordering = ['pk']
+
 class SurveyResponse(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    completed_date = models.DateTimeField(null=True, blank=True)
 
 
 class ResponseText(models.Model):

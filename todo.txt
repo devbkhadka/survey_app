@@ -1,2 +1,9 @@
-- Refactor take_survey url to have <survey_id>/<question_id>
+
 - Implement feature to post form when next button clicked
+- implement contextmanager for wait to be used in functional test
+- use token instead of response_id in cookie to make it secure
+- rename get_question_and_index_of_type to match its return tuple
+
+Rejected
+- Refactor take_survey url to have <survey_id>/<question_id>
+  Because it would be easier to implement question order

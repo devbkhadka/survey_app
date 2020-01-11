@@ -12,9 +12,15 @@
         {% endblock question%}
     </div>
     
-    <a id= 'btn-previous' href="{% url 'survey:take_survey' survey.pk cur_index|add:'-1' %}" 
+    <a id= 'btn-previous' href="javascript:history.back()" 
         class="btn btn-primary {% if cur_index == 1 %}disabled{% endif %}">Previous</a>
-    <a id= 'btn-next' href="{% url 'survey:take_survey' survey.pk cur_index|add:1 %}"
-        class="btn btn-primary {% if cur_index == questions_count %}disabled{% endif %}">Next</a>
+    <a id= 'btn-next' href="{{ next_url }}" class="btn btn-primary">Next</a>
 </div>
+
 {% endblock content%}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="/static/survey/survey.js"></script>
+{% endblock javascript%}
+

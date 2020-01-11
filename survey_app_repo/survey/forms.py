@@ -9,8 +9,7 @@ class FormRegistar:
     def __init__(self):
         if FormRegistar._instance is not None:
             raise Exception('This is singleton class please call static get_instance method')
-        
-        
+
         self.register = {}
         FormRegistar._instance = self
 
@@ -21,12 +20,13 @@ class FormRegistar:
     def register_form(self, question_type, form):
         self.register[question_type] = form
 
-    def get_form_for(self, question_type):
-        form = self.register.get(question_type, None)
-        if form is not None:
-            return form()
-        return None
+    def get_form_class_for(self, question_type):
+        return self.register.get(question_type, BaseQuestionForm)
 
+class BaseQuestionForm(forms.Form):
+    @staticmethod
+    def get_form_instance(question, survey_response, **kwargs):
+        return None
 
 class TextQuestionForm(forms.ModelForm):
 
@@ -37,13 +37,18 @@ class TextQuestionForm(forms.ModelForm):
             'response': ''
         }
 
-    def load_instance(self, question, survey_response):
+    @staticmethod
+    def get_form_instance(question, survey_response, **kwargs):
         '''Load response from database if exists'''
-        instance = ResponseText.objects.filter(survey_response=survey_response, question=question).first()
-        if instance is not None:
-            print(model_to_dict(instance))
-            self.initial = model_to_dict(instance)
-            self.instance = instance
+        answer = ResponseText.objects.filter(survey_response=survey_response, question=question).first()
+        if answer is not None:
+            form = TextQuestionForm(instance=answer, **kwargs)
+        else:
+            form = TextQuestionForm(**kwargs)
+        
+        form.instance.question = question
+        form.instance.survey_response = survey_response
+        return form
 
 
 # register forms to question types

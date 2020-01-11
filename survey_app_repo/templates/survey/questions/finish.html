@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content%}
+<div class="jumbotron">
+    <div>
+        <p id="description" class="card-text">Thank you for giving your valuable time to fill the survey. 
+            Please complete the survey or review your answers by clicking buttons below</p>
+        <form action="" method="POST">
+            {% csrf_token %}
+            <a id="btn-review" href="{% url 'survey:take_survey' survey.pk 1 %}" class="btn btn-primary">Review</a>
+            <button id= "btn-finish" type="submit" class="btn btn-primary">Finish</button>
+        </form>
+    </div>
+</div>
+{% endblock content%}

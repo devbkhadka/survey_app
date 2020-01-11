@@ -7,7 +7,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, ElementClickInterceptedException
+from selenium.common.exceptions import WebDriverException, ElementClickInterceptedException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 
 
@@ -49,7 +49,7 @@ class SurveysFunctionalTest(FunctionalTestCase):
         self.assertEqual(urlparse(self.browser.current_url).path,
                          reverse("survey:detail", args=[self.surveys[0].pk]))
 
-    
+
 class SurveyFunctionalTest(FunctionalTestCase):
     '''Functional tests for survey detail view'''
 
@@ -109,47 +109,52 @@ class TakeSurveyFunctionalTest(FunctionalTestCase):
         btn_previous = self.browser.find_element_by_id('btn-previous')
         return btn_next, btn_previous
 
-    def test_next_and_previous_buttons_shown_correctly(self):
+    def test_previous_button_disabled_for_1st_question(self):
         # for 1st question
-        btn_next, btn_previous = self.load_question_at(1)
+        _, btn_previous = self.load_question_at(1)
         with self.assertRaises(ElementClickInterceptedException):
             btn_previous.click()
-        btn_next.click() # btn_next is clickable
 
-        # for 2nd question
+    def test_previous_button_works(self):
         btn_next, btn_previous = self.load_question_at(2)
         btn_next.click()
-        btn_next, btn_previous = self.load_question_at(2)
+        sleep(3)
+        btn_previous = self.browser.find_element_by_id('btn-previous')
         btn_previous.click()
+        expected_url = reverse('survey:take_survey', args=[self.survey.pk, 2])
+        sleep(3)
+        self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
 
-        #for last question
-        index = self.survey.questions.count()
-        btn_next, btn_previous = self.load_question_at(index)
-        with self.assertRaises(ElementClickInterceptedException):
-            btn_next.click()
-        btn_previous.click() # btn_previous is clickable
         
-    def test_next_and_previous_button_works(self):
-        btn_next, btn_previous = self.load_question_at(1)
+    def test_next_button_works(self):
+        # for 1st question
+        btn_next, _ = self.load_question_at(1)
         btn_next.click()
         expected_url = reverse('survey:take_survey', args=[self.survey.pk, 2])
         self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
 
-        btn_next, btn_previous = self.load_question_at(2)
+        # for questions betweeen 1st and last
+        btn_next, _ = self.load_question_at(2)
         btn_next.click()
         expected_url = reverse('survey:take_survey', args=[self.survey.pk, 3])
         self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
 
-        btn_next, btn_previous = self.load_question_at(2)
-        btn_previous.click()
-        expected_url = reverse('survey:take_survey', args=[self.survey.pk, 1])
-        self.assertEqual(urlparse(self.browser.current_url).path, expected_url)
+        # for last question
+        last_index = self.survey.questions.count()
+        btn_next, _ = self.load_question_at(last_index)
+
+        expected_url = reverse('survey:finish_survey', args=[self.survey.pk])
+        next_url = urlparse(btn_next.get_attribute('href')).path
+        btn_next.click()
+        self.assertEqual(next_url, expected_url)
+
 
     def test_survey_response_id_cookie_set(self):
         url = reverse('survey:take_survey', args=[self.survey.pk, 1])
         self.browser.get(self.live_server_url+url)
         value = self.browser.get_cookie(f'survey_response_id_{self.survey.pk}')['value']
         self.assertTrue(value.isnumeric())
+
 
 
 class QuestionTypeTestCase(FunctionalTestCase):
@@ -174,9 +179,13 @@ class TestTextQuestionType(QuestionTypeTestCase):
     def test_ui_of_text_question_type(self):
         '''Test ui components of text question type'''
         self.browser.get(self.live_server_url + self.url)
-        self.browser.find_element_by_css_selector("input#id_response")
+        self.browser.find_element_by_css_selector('input#id_response')
 
-    def test_question_form_loaded_if_exists(self):
+        form = self.browser.find_element_by_id('question_form')
+        self.assertEqual(urlparse(form.get_attribute('action')).path, self.url)
+        self.assertEqual(form.get_attribute('method'), 'post')
+
+    def test_question_form_is_loaded_with_existing_answer(self):
         '''Test question form pre-loads'''
         self.browser.get(self.live_server_url + self.url)
         inp = self.browser.find_element_by_css_selector("input#id_response")
@@ -189,4 +198,40 @@ class TestTextQuestionType(QuestionTypeTestCase):
         btn_previous.click()
         sleep(5)
         inp = self.browser.find_element_by_css_selector("input#id_response")
-        self.assertEqual(inp.text, "This is my answer")
+        self.assertEqual(inp.get_attribute('value'), "This is my answer")
+
+
+class TestFinishSurveyView(FunctionalTestCase):
+    '''Functional test for FinishSurvey view'''
+
+    def setUp(self):
+        super().setUp()
+        self.survey, self.survey_response = factory.create_survey_with_text_question_and_answer()
+        self.cookie_key = f'survey_response_id_{self.survey.pk}'
+        self.browser.get(self.live_server_url)
+        self.browser.add_cookie({'name': self.cookie_key, 'value': str(self.survey_response.pk)})
+        url = reverse('survey:finish_survey', args=[self.survey.pk])
+        self.browser.get(self.live_server_url+url)
+
+    def test_review_button_works(self):
+        '''Test review button starts the survey again for review'''
+       
+        self.browser.find_element_by_id("btn-review").click()
+
+        self.assertEqual(urlparse(self.browser.current_url).path,
+                         reverse('survey:take_survey', args=[self.survey.pk, 1]))
+                         
+        
+    def test_complete_button_marks_survey_response_complete(self):
+        '''Test pressing Finish button updates survey_response's complted_date'''
+        
+        btn_finish = self.browser.find_element_by_id("btn-finish")
+
+        with self.assertRaises(NoSuchElementException):
+            self.browser.find_element_by_css_selector('div#done')
+
+        btn_finish.click()
+        sleep(3)
+
+        self.assertEqual(urlparse(self.browser.current_url).path, reverse('survey:thank_you'))
+        

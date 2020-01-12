@@ -72,5 +72,5 @@ def get_question_and_index_of_type(survey, qtype):
     questions = Question.objects.filter(survey=survey)
     for i, question in enumerate(questions):
         if question.question_type == str(qtype):
-            return i + 1, question
+            return question, i + 1
     return None

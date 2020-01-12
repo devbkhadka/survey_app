@@ -1,6 +1,7 @@
 '''functional tests for survey app'''
 from urllib.parse import urlparse
 from time import sleep
+from functools import wraps
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.conf import settings
@@ -9,10 +10,39 @@ from django.urls import reverse
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, ElementClickInterceptedException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 
 from . import factory
 from ..models import Question, QuestionTypes
+
+
+def wrap_in_wait(func, retires=5):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return wait(func, *args, retires=retires, **kwargs)
+    return wrapper
+
+def wait(func, *args, retires=10, exceptions=[AssertionError, NoSuchElementException], **kwargs):
+    for i in range(retires):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print('retry', i)
+            if type(e) not in exceptions:
+                raise e
+
+            if i == retires-1:
+                raise e
+
+            sleep(0.5 + i*.2)
+
+def wait_until_document_ready(browser):
+    WebDriverWait(browser, 20) \
+    .until(lambda d: d.execute_script('return document.readyState == "complete"'))
+            
+
 
 class FunctionalTestCase(StaticLiveServerTestCase):
     def setUp(self):
@@ -32,8 +62,7 @@ class SurveysFunctionalTest(FunctionalTestCase):
     def test_can_see_list_of_surveys(self):
         '''Test page lists surveys in database'''
         self.browser.get(self.live_server_url)
-        sleep(5)
-        title_elements = self.browser.find_elements_by_css_selector('.surveys .card-title')
+        title_elements = wait(self.browser.find_elements_by_css_selector, '.surveys .card-title')
         summary_elements = self.browser.find_elements_by_css_selector('.surveys .card-text')
 
         self.assertEqual([survey.title.lower() for survey in self.surveys],
@@ -118,8 +147,9 @@ class TakeSurveyFunctionalTest(FunctionalTestCase):
     def test_previous_button_works(self):
         btn_next, btn_previous = self.load_question_at(2)
         btn_next.click()
-        sleep(3)
-        btn_previous = self.browser.find_element_by_id('btn-previous')
+        
+        btn_previous = wait(self.browser.find_element_by_id, 'btn-previous')
+        sleep(1)
         btn_previous.click()
         expected_url = reverse('survey:take_survey', args=[self.survey.pk, 2])
         sleep(3)
@@ -161,7 +191,7 @@ class QuestionTypeTestCase(FunctionalTestCase):
     question_type = None
     def setUp(self):
         self.survey = factory.create_survey_with_questions()
-        index, self.question = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
+        self.question, index = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
         self.url = reverse('survey:take_survey', args=[self.survey.pk, index])
         super().setUp()
 
@@ -191,14 +221,16 @@ class TestTextQuestionType(QuestionTypeTestCase):
         inp = self.browser.find_element_by_css_selector("input#id_response")
         inp.send_keys("This is my answer")
 
-        btn_next = self.browser.find_element_by_id('btn-next')
-        btn_next.click()
-        sleep(5)
+        self.browser.find_element_by_id('btn-next').click()
+
+        wait_until_document_ready(self.browser)
         btn_previous = self.browser.find_element_by_id('btn-previous')
         btn_previous.click()
-        sleep(5)
+        wait_until_document_ready(self.browser)
         inp = self.browser.find_element_by_css_selector("input#id_response")
         self.assertEqual(inp.get_attribute('value'), "This is my answer")
+
+        
 
 
 class TestFinishSurveyView(FunctionalTestCase):
@@ -221,7 +253,7 @@ class TestFinishSurveyView(FunctionalTestCase):
         self.assertEqual(urlparse(self.browser.current_url).path,
                          reverse('survey:take_survey', args=[self.survey.pk, 1]))
                          
-        
+
     def test_complete_button_marks_survey_response_complete(self):
         '''Test pressing Finish button updates survey_response's complted_date'''
         
@@ -231,7 +263,6 @@ class TestFinishSurveyView(FunctionalTestCase):
             self.browser.find_element_by_css_selector('div#done')
 
         btn_finish.click()
-        sleep(3)
+        wait(self.assertEqual, urlparse(self.browser.current_url).path, reverse('survey:thank_you'))
 
         self.assertEqual(urlparse(self.browser.current_url).path, reverse('survey:thank_you'))
-        

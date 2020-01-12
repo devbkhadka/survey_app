@@ -135,7 +135,7 @@ class TestQuestionTypeSubView(TestCase):
     question_type = None
     def setUp(self):
         self.survey = factory.create_survey_with_questions()
-        self.index, self.question = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
+        self.question, self.index = factory.get_question_and_index_of_type(self.survey, self.question_type.name)
         self.url = reverse('survey:take_survey', args=[self.survey.pk, self.index])
         super().setUp()
 

@@ -41,7 +41,7 @@ class TestTextQuestionForm(TestCase):
 
     def setUp(self):
         self.survey = create_survey_with_questions()
-        _, self.question = get_question_and_index_of_type(self.survey, QuestionTypes.TEXT.name)
+        self.question, _ = get_question_and_index_of_type(self.survey, QuestionTypes.TEXT.name)
         self.survey_response = SurveyResponse.objects.create(survey=self.survey)
         super().setUp()
 

@@ -5,12 +5,13 @@
     <div class="card surveys">
         <h1 class="card-header display-5">Surveys</h1>
         <ul class="list-group list-group-flush">
-        {% for survey in surveys %}
+        {% for survey, resp_count in surveys %}
         <a id="survey_{{survey.pk}}" class="list-group-item list-group-item-action" href="{{survey.get_absolute_url}}">
             <div class="card-body">
                 <div class="row">
                     <div class="col"><h5 class="card-title text-capitalize">{{survey.title}}</h5></div>
                     <div class="col-sm-2 pdate">{{survey.published_date}}</div>
+                    <div class="col-sm-1 resp_count">{{resp_count}}</div>
                 </div>
                 <p class="card-text">{{survey.summary}}</p>
             </div>

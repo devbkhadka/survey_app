@@ -15,6 +15,10 @@ from . import factory
 class TestSurveysView(TestCase):
     '''Test case for Surveys view'''
 
+    def setUp(self):
+        factory.create_surveys()
+        super().setUp()
+
     def test_correct_view_called(self):
         '''Test correct view called when "home" url called'''
         called = resolve(reverse("home")).func
@@ -30,8 +34,11 @@ class TestSurveysView(TestCase):
     def test_sends_surveys_in_context(self):
         '''Test survyes view send all surveys in context'''
         all_surveys = Survey.objects.all()
+        factory.add_responses_to_surveys(all_surveys)
+        resp_counts = [SurveyResponse.objects.exclude(completed_date=None).filter(survey=survey).count()
+                       for survey in all_surveys]
         response = self.client.get(reverse("home"))
-        self.assertQuerysetEqual(response.context["surveys"], all_surveys)
+        self.assertEqual(response.context["surveys"], list(zip(all_surveys, resp_counts)))
 
 
 class TestSurveyView(TestCase):

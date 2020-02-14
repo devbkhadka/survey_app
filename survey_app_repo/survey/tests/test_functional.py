@@ -15,7 +15,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 from . import factory
-from ..models import Question, QuestionTypes
+from ..models import Question, QuestionTypes, SurveyResponse
 
 
 def wrap_in_wait(func, retires=5):
@@ -69,6 +69,15 @@ class SurveysFunctionalTest(FunctionalTestCase):
                          [elem.text.lower() for elem in title_elements])
         self.assertEqual([survey.summary.lower() for survey in self.surveys],
                          [elem.text.lower() for elem in summary_elements])
+
+    def test_survey_response_count_in_list_item(self):
+        '''test list item shows response of a survey'''
+        factory.add_responses_to_surveys(self.surveys)
+        counts = [SurveyResponse.objects.exclude(completed_date=None).filter(survey=survey).count() for survey in self.surveys]
+        self.browser.get(self.live_server_url)
+        resp_count_elements = wait(self.browser.find_elements_by_css_selector, '.surveys .resp_count')
+        self.assertEqual([elem.text for elem in resp_count_elements], list(map(str, counts)))
+
 
 
     def test_clicking_list_items_takes_to_survey_page(self):

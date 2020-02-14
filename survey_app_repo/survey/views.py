@@ -7,9 +7,14 @@ from django.utils import timezone
 from .models import Survey, Question, SurveyResponse
 from .forms import FormRegistar
 
+
 def surveys(request):
     '''View to show list of all surveys'''
-    context = dict(surveys=Survey.objects.all())
+    _surveys = Survey.objects.all()
+    resp_counts = [SurveyResponse.objects.exclude(completed_date=None).filter(survey=survey).count()
+                   for survey in _surveys]
+
+    context = dict(surveys=list(zip(_surveys, resp_counts)))
     return render(request, 'survey/surveys.html', context=context)
 
 
@@ -41,7 +46,7 @@ def take_survey(request, pk, index):
 
     response = render(request, f'survey/questions/{question.question_type}.html',
                       context=dict(survey=_survey, question=question, cur_index=index,
-                                   next_url=get_next_question_url(_survey, index) ,form=question_form))
+                                   next_url=get_next_question_url(_survey, index), form=question_form))
 
     response.set_cookie(f'survey_response_id_{_survey.pk}', survey_response.pk)
     return response

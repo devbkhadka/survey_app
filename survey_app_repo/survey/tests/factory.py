@@ -1,6 +1,7 @@
 '''Utility function to populate data needed for tests'''
 from ..models import Survey, Question, QuestionTypes, SurveyResponse, ResponseText
 
+
 RAW_SURVEYS = [
     {
         'title': 'Your favourite candidate',
@@ -20,6 +21,7 @@ RAW_SURVEYS = [
 
 ]
 
+
 RAW_QUESTIONS = [
     {
         'question': 'Read Description Below',
@@ -38,12 +40,14 @@ RAW_QUESTIONS = [
     }
 ]
 
+
 def create_surveys():
     '''create dummy surveys for test'''
     surveys = []
     for raw in RAW_SURVEYS:
         surveys.append(Survey.objects.create(**raw))
     return surveys
+
 
 def create_survey_with_questions():
     '''create survey example with some questions'''
@@ -53,6 +57,19 @@ def create_survey_with_questions():
         question = Question.objects.create(survey=survey, **raw)
         survey.questions.add(question)
     return survey
+
+
+def add_responses_to_surveys(surveys):
+    '''Add some responses in each survey'''
+    completed_dates = [
+        ['2019-4-20 00:00+0545', None, '2019-5-13 00:00+0545'],
+        [None, '2019-4-8 00:00+0545', '2019-5-13 00:00+0545', '2019-6-02 00:00+0545', '2019-4-7 00:00+0545'],
+        ['2019-4-8 00:00+0545'],
+    ]
+    for survey, dates in zip(surveys, completed_dates):
+        for date in dates:
+            SurveyResponse.objects.create(survey=survey, completed_date=date)
+
 
 def create_survey_with_text_question_and_answer():
     '''create survey example with only one question of type text'''
@@ -67,6 +84,7 @@ def create_survey_with_text_question_and_answer():
     survey_response = SurveyResponse.objects.create(survey=survey)
     ResponseText.objects.create(survey_response=survey_response, question=question)
     return survey, survey_response
+
 
 def get_question_and_index_of_type(survey, qtype):
     questions = Question.objects.filter(survey=survey)

@@ -1,11 +1,14 @@
 '''Module for forms of survey app'''
 
 from django import forms
-from django.forms.models import model_to_dict
 from .models import QuestionTypes, ResponseText
 
+
 class FormRegistar:
+ 
     _instance = None
+
+
     def __init__(self):
         if FormRegistar._instance is not None:
             raise Exception('This is singleton class please call static get_instance method')
@@ -13,20 +16,27 @@ class FormRegistar:
         self.register = {}
         FormRegistar._instance = self
 
+
     @staticmethod
     def get_instance():
         return FormRegistar._instance if FormRegistar._instance is not None else FormRegistar()
 
+
     def register_form(self, question_type, form):
         self.register[question_type] = form
+
 
     def get_form_class_for(self, question_type):
         return self.register.get(question_type, BaseQuestionForm)
 
+
 class BaseQuestionForm(forms.Form):
+
+
     @staticmethod
     def get_form_instance(question, survey_response, **kwargs):
         return None
+
 
 class TextQuestionForm(forms.ModelForm):
 

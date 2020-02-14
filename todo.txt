@@ -1,7 +1,5 @@
-
+- Implement admin site
+- Show response count in survey list and detail
+- Show if current session has incomplete response for survey in survey list and detail
+- Use reactjs for survey question ui
 - use token instead of response_id in cookie to make it secure
-
-
-Rejected
-- Refactor take_survey url to have <survey_id>/<question_id>
-  Because it would be easier to implement question order

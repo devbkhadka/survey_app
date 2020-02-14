@@ -83,7 +83,7 @@ class TestTextQuestionForm(TestCase):
         self.assertEqual(answer.question, self.question)
         self.assertEqual(answer.survey_response, self.survey_response)
 
-    def test_save_can_change_anser(self):
+    def test_save_can_change_answer(self):
         ResponseText.objects.create(response='This is answer from test_form',
                                     question=self.question, survey_response=self.survey_response)
         
